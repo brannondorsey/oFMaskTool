@@ -103,14 +103,11 @@ void MaskTool::update(ofTexture& srcTex)
     for (int i = 0; i < _frameStack.size(); i++)
     {
         
-        
         if (!_frameStack[i]->isCleared())
         {
             _maskFrame.begin();
-            
-            // this conditional is causing the weird GL choke
+
             _frameCombineShader.begin();
-            _frameCombineShader.setUniformTexture("maskFrameTex", _maskFrame.getTextureReference(), 0);
             _frameCombineShader.setUniformTexture("frameTex", _frameStack[i]->getTextureReference(), 1);
             _frameCombineShader.end();
             
@@ -137,7 +134,8 @@ void MaskTool::update(ofTexture& srcTex)
 void MaskTool::draw(ofTexture & dstTex)
 {
     ofSetColor(255, 255);
-//    _frameStack[0]->draw(0, 0);
+//    _frameStack[_curUndoFrame]->draw(0, 0);
+    _maskFrame.draw(0, 0);
 //    dstTex.draw(0, 0);
 //    _frame.draw(0, 0);
 }
