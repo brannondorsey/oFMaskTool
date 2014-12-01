@@ -28,8 +28,9 @@ public:
     void mouseMoved(ofMouseEventArgs& e);
 	void mouseDragged(ofMouseEventArgs& e);
 	void mousePressed(ofMouseEventArgs& e);
-	void mouseReleased(ofMouseEventArgs& e);
-    
+    void mouseReleased(ofMouseEventArgs& e);
+    void mouseScrolled(ofMouseEventArgs& e);
+
     int getMaxNumUndos();
     int getNumUndos();
     

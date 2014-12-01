@@ -191,6 +191,12 @@ void MaskTool::mouseReleased(ofMouseEventArgs& e)
 }
 
 
+void MaskTool::mouseScrolled(ofMouseEventArgs& e)
+{
+
+}
+
+
 int MaskTool::getNumUndos()
 {
    
