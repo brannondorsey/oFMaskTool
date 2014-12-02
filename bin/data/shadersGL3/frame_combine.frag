@@ -17,6 +17,6 @@ void main()
     float frameR = texture(frameTex, texCoordVarying).r;
     maskR = maskR + frameR;
     maskR = clamp(maskR, 0, 255);
-    vec3 brightness = vec3(maskR, maskR, maskR);
-    outputColor = vec4(255, 255, 255, 255);
+    vec3 brightness = vec3(maskR);
+    outputColor = vec4(brightness, 255);
 }

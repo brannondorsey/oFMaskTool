@@ -27,12 +27,21 @@ void ofApp::update(){
 void ofApp::draw(){
 
     maskTool.draw(dstImg.getTextureReference());
-    ofDrawBitmapString(ofToString(ofGetFrameRate()) + " fps", 15, 15);
+    
+    std::stringstream str;
+    str << ofGetFrameRate() << " fps\n";
+    str << "Press SPACE to undo\n\n";
+    str << "Max Undos " << maskTool.getMaxNumUndos() << "\n";
+    str << "Undos left " << maskTool.getNumUndos();
+    ofDrawBitmapStringHighlight(str.str(), 15, 15);
 }
 
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
-
+    
+    if (key == ' ') {
+        maskTool.undo();
+    }
 }
 
 //--------------------------------------------------------------

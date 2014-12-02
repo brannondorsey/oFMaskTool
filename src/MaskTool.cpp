@@ -10,8 +10,8 @@
 MaskTool::MaskTool():
 _bEnabled(true),
 _bBrushDown(false),
-_maxNumUndos(20),
-_curUndoFrame(0),
+_maxNumUndos(5),
+_curUndoFrame(1),
 _width(0),
 _height(0)
 {
@@ -51,7 +51,7 @@ void MaskTool::setup(int width, int height, bool sizeChanged)
         
         _frameStack.clear();
         
-        for (int i = 0; i < _maxNumUndos; i++)
+        for (int i = 0; i < _maxNumUndos + 2; i++)
         {
             _frameStack.push_back(shared_ptr<MaskFrame>(new MaskFrame()));
             _frameStack[i]->allocate(_width, _height, GL_RGBA, 8);
@@ -90,60 +90,56 @@ void MaskTool::reset(int width, int height)
 
 void MaskTool::update(ofTexture& srcTex)
 {
-    ofSetColor(255, 255);
-    
-    if (_bBrushDown)
-    {
-        _frameStack[_curUndoFrame]->begin();
-        _brushImg.draw(ofGetMouseX() - 25, ofGetMouseY() - 25, 50, 50);
-        _frameStack[_curUndoFrame]->end();
-    }
-    
-    // combine all frames in _frameStack into _maskFrame
-    for (int i = 0; i < _frameStack.size(); i++)
+    if (getEnabled())
     {
         
-        if (!_frameStack[i]->isCleared())
+        ofSetColor(255, 255);
+        
+        if (_bBrushDown)
         {
-            _maskFrame.begin();
-
-            _frameCombineShader.begin();
-            _frameCombineShader.setUniformTexture("frameTex", _frameStack[i]->getTextureReference(), 1);
-            _frameCombineShader.end();
-            
-            _maskFrame.end();
+            _frameStack[_curUndoFrame]->begin();
+            _brushImg.draw(ofGetMouseX() - 25, ofGetMouseY() - 25, 50, 50);
+            _frameStack[_curUndoFrame]->end();
         }
+        
+        _maskFrame.begin();
+        ofClear(0, 0, 0, 255);
+        _maskFrame.end();
+        
+        // combine all frames in _frameStack into _maskFrame
+        for (int i = 0; i < _frameStack.size(); i++)
+        {
+            
+            if (!_frameStack[i]->isCleared())
+            {
+                _combineFrames(_maskFrame, _frameStack[i]->getTextureReference());
+            }
+        }
+        
+        _frame.begin();
+        // Cleaning everthing with alpha mask on 0 in order to make it transparent for default
+        ofClear(0, 0, 0, 0);
+        
+        _maskShader.begin();
+        _maskShader.setUniformTexture("maskTex", _maskFrame.getTextureReference(), 1);
+        
+        srcTex.draw(0,0);
+        
+        _maskShader.end();
+        _frame.end();
     }
-
-// uncomment later
-//    _frame.begin();
-//    // Cleaning everthing with alpha mask on 0 in order to make it transparent for default
-//    ofClear(0, 0, 0, 0);
-//    
-//    _maskShader.begin();
-//    _maskShader.setUniformTexture("maskTex", _maskFrame.getTextureReference(), 1);
-//    
-//    srcTex.draw(0,0);
-//    
-//    _maskShader.end();
-//    _frame.end();
-
 }
 
 
 void MaskTool::draw(ofTexture & dstTex)
 {
-    ofSetColor(255, 255);
-//    _frameStack[_curUndoFrame]->draw(0, 0);
-    _maskFrame.draw(0, 0);
-//    dstTex.draw(0, 0);
-//    _frame.draw(0, 0);
-}
-
-
-void MaskTool::setMaxUndos(int numUndos)
-{
-    
+    if (getEnabled())
+    {
+        
+        ofSetColor(255);
+        dstTex.draw(0, 0);
+        _frame.draw(0, 0);
+    }
 }
 
 
@@ -186,20 +182,26 @@ void MaskTool::mouseReleased(ofMouseEventArgs& e)
     }
     else
     {
-        _curUndoFrame = 0;
+        shared_ptr<MaskFrame> firstFrame = _frameStack[0];
+        _frameStack.pop_front();
+        _combineFrames((*_frameStack[0]), firstFrame->getTextureReference());
+        
+        firstFrame->clearContents();
+        
+        _frameStack.push_back(firstFrame);
     }
 }
 
 
 void MaskTool::mouseScrolled(ofMouseEventArgs& e)
 {
-
+    
 }
 
 
 int MaskTool::getNumUndos()
 {
-   
+    return _curUndoFrame - 1;
 }
 
 
@@ -211,7 +213,15 @@ int MaskTool::getMaxNumUndos()
 
 bool MaskTool::undo()
 {
+    if (!_bBrushDown && _curUndoFrame > 1) {
+        
+        _frameStack[_curUndoFrame - 1]->clearContents();
+        _curUndoFrame--;
+        
+        return true;
+    }
     
+    return false;
 }
 
 
