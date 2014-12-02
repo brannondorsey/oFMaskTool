@@ -10,13 +10,14 @@
 MaskTool::MaskTool():
 _bEnabled(true),
 _bBrushDown(false),
-_maxNumUndos(5),
+_maxNumUndos(20),
 _curUndoFrame(1),
 _width(0),
 _height(0)
 {
     ofRegisterMouseEvents(this);
     
+    // NOTE: GL3 shaders ONLY supported as of 12/1/14
 #ifdef TARGET_OPENGLES
 	_maskShader.load("shadersES2/mask");
     _frameCombineShader.load("shadersES2/frame_combine");
